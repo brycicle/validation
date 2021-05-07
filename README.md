@@ -1,4 +1,4 @@
-# Address Service
+# Auth Service
 
 Scaffolding for Spring Microservices
 
