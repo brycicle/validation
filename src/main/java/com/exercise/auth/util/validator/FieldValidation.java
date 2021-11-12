@@ -14,11 +14,8 @@ public final class FieldValidation {
         return this.fieldValue;
     }
 
-    public FieldValidation isUuid() {
-        return isUuid(parameterMap.getException());
-    }
 
-    public FieldValidation isUuid(final RuntimeException exception) {
+    public FieldValidation isUuid(final String message) {
         return condition(value -> {
             boolean condition = false;
             if (Validator.isEmpty(value) || Validator.isNull(value)) {
@@ -27,14 +24,10 @@ public final class FieldValidation {
                 condition = Validator.isUuid(value);
             }
             return condition;
-        }, exception);
+        }, message);
     }
 
-    public FieldValidation isInt() {
-        return isInt(parameterMap.getException());
-    }
-
-    public FieldValidation isInt(final RuntimeException exception) {
+    public FieldValidation isInt(final String message) {
         return condition(value -> {
             boolean condition = false;
             if (Validator.isEmpty(value) || Validator.isNull(value)) {
@@ -43,14 +36,10 @@ public final class FieldValidation {
                 condition = Validator.isInt(value);
             }
             return condition;
-        }, exception);
+        }, message);
     }
 
-    public FieldValidation isDouble() {
-        return isDouble(parameterMap.getException());
-    }
-
-    public FieldValidation isDouble(final RuntimeException exception) {
+    public FieldValidation isDouble(final String message) {
         return condition(value -> {
             boolean condition = false;
             if (Validator.isEmpty(value) || Validator.isNull(value)) {
@@ -59,14 +48,10 @@ public final class FieldValidation {
                 condition = Validator.isDouble(value);
             }
             return condition;
-        }, exception);
+        }, message);
     }
 
-    public FieldValidation isLong() {
-        return isLong(parameterMap.getException());
-    }
-
-    public FieldValidation isLong(final RuntimeException exception) {
+    public FieldValidation isLong(final String message) {
         return condition(value -> {
             boolean condition = false;
             if (Validator.isEmpty(value) || Validator.isNull(value)) {
@@ -75,14 +60,10 @@ public final class FieldValidation {
                 condition = Validator.isLong(value);
             }
             return condition;
-        }, exception);
+        }, message);
     }
 
-    public FieldValidation isBoolean() {
-        return isBoolean(parameterMap.getException());
-    }
-
-    public FieldValidation isBoolean(final RuntimeException exception) {
+    public FieldValidation isBoolean(final String message) {
         return condition(value -> {
             boolean condition = false;
             if (Validator.isEmpty(value)) {
@@ -90,24 +71,14 @@ public final class FieldValidation {
             }
             condition = Validator.isBoolean(value);
             return condition;
-        }, exception);
+        }, message);
     }
 
-    public FieldValidation required() {
-        return required(parameterMap.getException());
+    public FieldValidation required(final String message) {
+        return condition(value -> !Validator.isEmpty(value), message);
     }
 
-    public FieldValidation required(final RuntimeException exception) {
-        return condition(value -> {
-            return !Validator.isEmpty(value);
-        }, exception);
-    }
-
-    public FieldValidation minLength(final int length) {
-        return minLength(length, parameterMap.getException());
-    }
-
-    public FieldValidation minLength(final int length, final RuntimeException exception) {
+    public FieldValidation minLength(final int length, final String message) {
         return condition(value -> {
             boolean condition = false;
             if (Validator.isEmpty(value) || Validator.isNull(value)) {
@@ -116,14 +87,10 @@ public final class FieldValidation {
                 condition = Validator.isMinLength(value, length);
             }
             return condition;
-        }, exception);
+        }, message);
     }
 
-    public FieldValidation maxLength(final int length) {
-        return maxLength(length, parameterMap.getException());
-    }
-
-    public FieldValidation maxLength(final int length, final RuntimeException exception) {
+    public FieldValidation maxLength(final int length, final String message) {
         return condition(value -> {
             boolean condition = false;
             if (Validator.isEmpty(value) || Validator.isNull(value)) {
@@ -132,14 +99,10 @@ public final class FieldValidation {
                 condition = Validator.isMaxLength(value, length);
             }
             return condition;
-        }, exception);
+        }, message);
     }
 
-    public FieldValidation minValue(final double minValue) {
-        return minValue(minValue, parameterMap.getException());
-    }
-
-    public FieldValidation minValue(final double minValue, final RuntimeException exception) {
+    public FieldValidation minValue(final double minValue, final String message) {
         return condition(value -> {
             boolean condition = false;
             if (Validator.isEmpty(value) || Validator.isNull(value)) {
@@ -150,14 +113,10 @@ public final class FieldValidation {
                 condition = Validator.isMinValue(fieldValue, minValue);
             }
             return condition;
-        }, exception);
+        }, message);
     }
 
-    public FieldValidation maxValue(final double maxValue) {
-        return maxValue(maxValue, parameterMap.getException());
-    }
-
-    public FieldValidation maxValue(final double maxValue, final RuntimeException exception) {
+    public FieldValidation maxValue(final double maxValue, final String message) {
         return condition(value -> {
             boolean condition = false;
             if (Validator.isEmpty(value)) {
@@ -168,31 +127,50 @@ public final class FieldValidation {
                 condition = Validator.isMaxValue(fieldValue, maxValue);
             }
             return condition;
-        }, exception);
+        }, message);
     }
 
-    public FieldValidation setException(final RuntimeException exception) {
-        parameterMap.setException(exception);
-        return Optional.of(this).get();
+    public FieldValidation isEmail(final String message) {
+        return condition(value -> {
+            boolean condition;
+            if (Validator.isEmpty(value)) {
+                condition = true;
+            } else {
+                condition = Validator.isEmail(fieldValue);
+            }
+            return condition;
+        }, message);
     }
 
-    public FieldValidation condition(final BooleanCondition condition) {
-        return condition(condition, this.parameterMap.getException(), new Object[] {});
+    public FieldValidation isNumber(final String message) {
+        return condition(value -> {
+            boolean condition;
+            if (Validator.isEmpty(value)) {
+                condition = true;
+            } else {
+                condition = Validator.isNumber(fieldValue);
+            }
+            return condition;
+        }, message);
     }
 
-    public FieldValidation condition(final BooleanCondition condition, final RuntimeException exception) {
-        return condition(condition, exception, new Object[] {});
+    private boolean hasErrorAlready() {
+        return parameterMap.hasError(fieldName);
+    }
+
+    public FieldValidation condition(final BooleanCondition condition, final String message) {
+        return condition(condition, message, new Object[] {});
     }
 
     public FieldValidation condition(
             final BooleanCondition condition,
-            final RuntimeException exception,
+            final String message,
             final Object... arguments
     ) {
         final Optional<FieldValidation> fieldValidation = Optional.of(this);
 
         if (!condition.isTrue(fieldValue)) {
-            parameterMap.reject(fieldName, exception, arguments);
+            parameterMap.reject(fieldName, message, arguments);
         }
 
         return fieldValidation.get();

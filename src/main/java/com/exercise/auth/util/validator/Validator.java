@@ -1,12 +1,20 @@
 package com.exercise.auth.util.validator;
 
+import com.exercise.auth.exceptions.FieldValidationException;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
+import java.util.HashMap;
 import java.util.Optional;
 
 @Component
 public abstract class Validator<T> {
+
     /**
      * Returns the validated object
      * @param body Body of the request to be validated.
@@ -14,6 +22,11 @@ public abstract class Validator<T> {
      */
     public T validate(final ParameterMap body) {
         final T result = doValidate(body);
+
+        if(body.hasErrors()) {
+            throw new FieldValidationException(new HashMap<>(body.getErrorMap()));
+        }
+
         return result;
     }
 
@@ -89,4 +102,26 @@ public abstract class Validator<T> {
     public static boolean isMaxValue(final String value, final double maxValue) {
         return Double.parseDouble(value) < maxValue;
     }
+
+    public static boolean isEmail(final String value) {
+        return value.matches("\\S+@\\S+\\.\\S+");
+    }
+
+    public static boolean isDate(final String value) {
+        boolean isValid = true;
+        // uuuu-MM-dd'T'HH:mm:ss.SSSXXX = 2021-05-10T22:00:15.000+08:00
+        // uuuu-MM-dd'T'HH:mm:ss.SSSZZ = 2021-05-10T22:00:15.000+0800
+        final DateTimeFormatter dateTimeFormatter = DateTimeFormatter
+                .ofPattern("uuuu-MM-dd'T'HH:mm:ssXXX")
+                .withResolverStyle(ResolverStyle.STRICT);
+        try {
+            OffsetDateTime.parse(value, dateTimeFormatter);
+            // log.info(dateTimeFormatter.format(OffsetDateTime.parse(value, dateTimeFormatter)));
+        } catch (final DateTimeParseException dateTimeParseException) {
+            isValid = false;
+            // log.info(dateTimeParseException.getMessage());
+        }
+        return isValid;
+    }
+
 }

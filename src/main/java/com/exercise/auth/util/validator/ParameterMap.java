@@ -4,29 +4,25 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
 @Data
 public class ParameterMap extends HashMap<String, Object> {
 
-    private RuntimeException exception;
+    private Map<String, String> errorMap = new HashMap<>();
 
     /**
      * Returns the String used on validator
      * @return The String used on validator
      */
     public String getString(final String key) {
-        final Optional<Object> val = Optional.ofNullable(getOrDefault(key, null));
+        final Optional<Object> val = Optional.ofNullable(get(key));
         String stringValue = "";
 
-        if (!(val.get() instanceof String)) {
-            stringValue = val.get().toString();
-            if (val.isEmpty()) {
-                stringValue = "";
-            }
-        } else {
-            stringValue = String.valueOf(val.get());
+        if (val.isPresent()) {
+            stringValue = val.get() instanceof String ? val.get().toString() : String.valueOf(val.get());
         }
 
         return val.isEmpty() ? null : stringValue;
@@ -34,26 +30,25 @@ public class ParameterMap extends HashMap<String, Object> {
 
     /** Reject
      * @param field FieldName to be rejected
-     * @param exception Exception to be thrown
+     * @param message Error Message to be thrown
      */
-    public void reject(final String field, final RuntimeException exception) {
-        reject(field, exception, new Object[] {});
+    public void reject(final String field, final String message) {
+        reject(field, message, new Object[] {});
     }
 
     /** Reject
      * @param field FieldName to be rejected
-     * @param exception Exception to be thrown
+     * @param message Error Message to be thrown
      */
-    public void reject(final String field, final RuntimeException exception, final Object... arguments) {
+    public void reject(final String field, final String message, final Object... arguments) {
         log.info("Request Field Exception : {}", field);
-        throw exception;
+        errorMap.put(field, message);
     }
 
     /** Calls the constructor of FieldValidation
      * @return FieldValidation object used to validate fields
      */
     public FieldValidation validate(final String fieldName) {
-        setException(new RuntimeException());
         return new FieldValidation(fieldName, getString(fieldName), this);
     }
 
@@ -76,5 +71,20 @@ public class ParameterMap extends HashMap<String, Object> {
     public int hashCode() {
         final int hashCode = super.hashCode();
         return hashCode;
+    }
+
+    /** Checks if there is an error thrown on validation
+     * @return hasValidationError
+     */
+    public boolean hasErrors() {
+        return !errorMap.isEmpty();
+    }
+
+
+    /** Checks if there is an error for a field
+     * @return hasError
+     */
+    public boolean hasError(String key) {
+        return errorMap.containsKey(key);
     }
 }
